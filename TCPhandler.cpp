@@ -11,7 +11,7 @@ int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 sockaddr_in serverAddress;
 serverAddress.sin_family = AF_INET;
 serverAddress.sin_port = htons(port);
-serverAddress.sin_addr.s_addr = INADDR_ANY;
+serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
 
 //bind the socket to the address
 if(bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
@@ -52,7 +52,7 @@ int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 sockaddr_in serverAddress;
 serverAddress.sin_family = AF_INET;
 serverAddress.sin_port = htons(port);
-serverAddress.sin_addr.s_addr = INADDR_ANY;
+serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
 
 //connect to the server
 if(connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
