@@ -1,39 +1,115 @@
 #include <cstdlib>
 #include <string>
+#include <vector>
+#include <iostream>
+#include <unistd.h>
+#include <sys/wait.h>
 
-// method to execute the command line arguments
-void executeCommand(string execName, vector<string> execArgs, int inputfd, int outputfd)
+using namespace std;
+
+int input_fd = STDIN_FILENO;
+int output_fd = STDOUT_FILENO;
+
+void cleanup()
 {
-    // execute the command
-    if (fork() < 0)
+    if (input_fd != STDIN_FILENO)
+        close(input_fd);
+    if (output_fd != STDOUT_FILENO)
+        close(output_fd);
+    exit(EXIT_SUCCESS);
+}
+
+void executeCommand(const char **args)
+{
+    int pid = fork();
+    if (pid == 0)
+    { // Child process
+        execvp(args[0], const_cast<char* const*>(args));
+        perror("execvp failed");
+        cleanup(); // Clean up in case of execvp failure
+    }
+    else if (pid > 0)
+    {                   // Parent process
+        wait(NULL);     // Wait for the child process to finish
+        fflush(stdout); // flash the output
+    }
+    else
     {
-        // handle fork failure
-        std::cerr << "Error forking" << std::endl;
-        exit(EXIT_FAILURE);
+        perror("fork befor execvp failed");
+        cleanup(); // Clean up in case of fork failure
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    Parser parser(argc, argv); // Initialize parser with command-line arguments
+
+    // if the timeout argument is not null then set the timeout
+    if (parser.tArg != NULL)
+    {
+        // convert the timeout argument to an integer
+        int timeout = stoi(parser.tArg);
+        // set the timeout
+        alarm(timeout);
     }
 
-    //fork, change the input and output file descriptors, and execute the command
-
-    
-
-    int main(int argc, char *argv[])
+    if (parser.bArg != NULL)
     {
-        Parser parser(argc, argv); // Initialize parser with command-line arguments
+        parser.updateInputOutput(&input_fd, &output_fd, 0);
+    }
+    if (parser.iArg != NULL)
+    {
+        parser.updateInputOutput(&input_fd, &output_fd, 1);
+    }
+    if (parser.oArg != NULL)
+    {
+        parser.updateInputOutput(&input_fd, &output_fd, 2);
+    }
 
-        // Example usage of parsed data
-        std::cout << "Executable: " << parser.getExecName() << std::endl;
-        for (const auto &arg : parser.getExecArgs())
+    if (parser.eArg != NULL)
+    {
+        // redirect the input and output to the new file descriptors
+        if (input_fd != STDIN_FILENO)
         {
-            std::cout << "Arg: " << arg << std::endl;
+            if (dup2(input_fd, STDIN_FILENO) == -1)
+            {
+                perror("input dup2 failed");
+                cleanup();
+            }
         }
-        std::cout << "Protocol: " << parser.options.protocol << std::endl;
-        std::cout << "Port: " << parser.getPort() << std::endl;
 
-        // Additional functionality to be implemented as required:
-        // - Execute the command
-
-        // - Handle socket communication
-        // - Redirect input/output
-
-        return 0;
+        if (output_fd != STDOUT_FILENO)
+        {
+            if (dup2(output_fd, STDOUT_FILENO) == -1)
+            {
+                perror("output dup2 failed");
+                cleanup();
+            }
+        }
     }
+
+    // //
+    // int input_fd = STDIN_FILENO;
+    // int output_fd = STDOUT_FILENO;
+
+    // const char* execName = "/bin/ls";  // Example executable
+    // const char** execArgs = new const char*[4];  // Example arguments
+    // execArgs[0] =  ("123456789");
+
+    // int serverSocket = tcpServer(6000);
+    // if (serverSocket < 0) {
+    //     cerr << "Failed to create server socket" << endl;
+    //     return 1;
+    // }
+
+    // int clientSocket = tcpClient(6000);
+    // if (clientSocket < 0) {
+    //     cerr << "Failed to create client socket" << endl;
+    //     return 1;
+    // }
+
+    // // Execute command with sockets as stdin and stdout
+    // executeCommand(argv[1], const_cast<char* const*>(execArgs), clientSocket, serverSocket);
+
+    return 0;
+}

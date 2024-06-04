@@ -1,5 +1,12 @@
+#include <sys/types.h>      // Provides data types used in system calls
+#include <sys/socket.h>     // Provides socket functions and structures
+#include <netinet/in.h>     // Provides constants and structures needed for internet domain addresses
+#include <unistd.h>         // Provides access to the POSIX operating system API
+#include <iostream>         // Provides Input and Output stream classes
 
-int udpServer(port){
+using namespace std;
+
+int udpServer(int port){
     //init socket
     int serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
     

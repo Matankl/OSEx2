@@ -1,3 +1,23 @@
+#include <iostream>
+#include <cstdlib>
+// #include <string>
+// #include <vector>
+// #include <sys/socket.h> // Needed for socket creating and binding
+// #include <netinet/in.h> // Needed to use struct sockaddr_in
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <sys/wait.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+using namespace std;
 
 // this is a method to handle the TCP server
 int tcpServer(int port){
@@ -16,7 +36,7 @@ serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
 //bind the socket to the address
 if(bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
     // handle binding failure
-    cout << "Error binding socket" << endl;
+    std::cout << "Error binding socket (server)" << std::endl;
     perror("bind");
     close(serverSocket);
     return -1;
@@ -24,22 +44,25 @@ if(bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) <
 // first arg is the socket file descriptor, second arg is the maximum number of connections that can be waiting while the process is handling a particular connection
 if(listen(serverSocket, 1) < 0){
     // handle listening failure
-    cout << "Error listening on socket" << endl;
+    std::cout << "Error listening on socket" << std::endl;
     perror("listen");
     close(serverSocket);
     return -1;
 }
 
-cout << "Server listening on port " << port << endl;
+std::cout << "Server listening on port " << port << std::endl;
 
 int clientSocket = accept(serverSocket, nullptr, nullptr);
 if(clientSocket < 0){
     // handle accepting failure
-    cout << "Error accepting connection" << endl;
+    std::cout << "Error accepting connection" << std::endl;
     perror("accept");
     close(serverSocket);
     return -1;
 }
+
+std::cout << "Connection accepted" << std::endl;
+
 return clientSocket;
 }
 
@@ -57,7 +80,7 @@ serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
 //connect to the server
 if(connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
     // handle connection failure
-    cout << "Error connecting to server" << endl;
+    std::cout << "Error connecting to server" << std::endl;
     perror("connect");
     close(clientSocket);
     return -1;
