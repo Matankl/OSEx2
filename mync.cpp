@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include "Parser.hpp"
+
 using namespace std;
 
 int input_fd = STDIN_FILENO;
@@ -24,6 +26,8 @@ void executeCommand(const char **args)
     int pid = fork();
     if (pid == 0)
     { // Child process
+    cout << "execvp: " << args[0] << endl;
+    cout << "execvp: " << args[1] << endl;
         execvp(args[0], const_cast<char* const*>(args));
         perror("execvp failed");
         cleanup(); // Clean up in case of execvp failure
@@ -40,33 +44,24 @@ void executeCommand(const char **args)
     }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
     Parser parser(argc, argv); // Initialize parser with command-line arguments
 
     // if the timeout argument is not null then set the timeout
-    if (parser.tArg != NULL)
+    if (!parser.tArgs.empty())
     {
         // convert the timeout argument to an integer
-        int timeout = stoi(parser.tArg);
+        int timeout = stoi(parser.tArgs);
         // set the timeout
         alarm(timeout);
     }
 
-    if (parser.bArg != NULL)
-    {
-        parser.updateInputOutput(&input_fd, &output_fd, 0);
-    }
-    if (parser.iArg != NULL)
-    {
-        parser.updateInputOutput(&input_fd, &output_fd, 1);
-    }
-    if (parser.oArg != NULL)
-    {
-        parser.updateInputOutput(&input_fd, &output_fd, 2);
-    }
+    if (!parser.bArgs.empty()) parser.updateInputOutput(input_fd, output_fd, 0);
+    if (!parser.iArgs.empty()) parser.updateInputOutput(input_fd, output_fd, 1);
+    if (!parser.oArgs.empty()) parser.updateInputOutput(input_fd, output_fd, 2);
 
-    if (parser.eArg != NULL)
+
+    if (parser.eArgs != nullptr)
     {
         // redirect the input and output to the new file descriptors
         if (input_fd != STDIN_FILENO)
@@ -86,11 +81,9 @@ int main(int argc, char *argv[])
                 cleanup();
             }
         }
+        executeCommand(parser.execArgs);
     }
 
-    // //
-    // int input_fd = STDIN_FILENO;
-    // int output_fd = STDOUT_FILENO;
 
     // const char* execName = "/bin/ls";  // Example executable
     // const char** execArgs = new const char*[4];  // Example arguments
