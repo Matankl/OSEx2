@@ -54,10 +54,10 @@ $(TARGET): Parser.o TCPhandler.o UDPhandler.o mync.o
 Parser.o: Parser.cpp Parser.hpp
 	$(CC) $(CFLAGS) -c Parser.cpp
 
-TCPhandler.o: TCPhandler.cpp 
+TCPhandler.o: TCPhandler.cpp TCPhandler.hpp
 	$(CC) $(CFLAGS) -c TCPhandler.cpp
 
-UDPhandler.o: UDPhandler.cpp 
+UDPhandler.o: UDPhandler.cpp UDPhandler.hpp
 	$(CC) $(CFLAGS) -c UDPhandler.cpp
 
 mync.o: mync.cpp Parser.hpp

@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+// #include <unistd.h>
+
 
 #define SIZE 9
 #define PLAYER 1
@@ -170,6 +172,7 @@ int main(int argc, char const *argv[]){
         moveMade = makeMove(board, PLAYER, playerMove);
         while(!moveMade){
             std::cout << "invalid move, enter a valid move: ";
+            // sleep(1);
             std::cin >> playerMove;
             moveMade = makeMove(board, PLAYER, playerMove);
         }

@@ -1,15 +1,9 @@
 #include <iostream>
 #include <cstdlib>
-// #include <string>
-// #include <vector>
-// #include <sys/socket.h> // Needed for socket creating and binding
-// #include <netinet/in.h> // Needed to use struct sockaddr_in
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include <sys/wait.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -17,12 +11,29 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include "TCPhandler.hpp"
 using namespace std;
 
 // this is a method to handle the TCP server
 int tcpServer(int port){
 //init socket 
 int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+if(serverSocket < 0){
+    // handle socket creation failure
+    std::cout << "Error creating socket (server)" << std::endl;
+    perror("socket");
+    return -1;
+}
+
+//allow the socket to be reused immediately after it is closed
+int enable = 1;
+if(setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0){
+    // handle setsockopt failure
+    std::cout << "Error setting socket options" << std::endl;
+    perror("setsockopt");
+    close(serverSocket);
+    return -1;
+}
 
 //fill in the server address
 // sockaddr_in: It is the data type that is used to store the address of the socket.
@@ -31,7 +42,7 @@ int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 sockaddr_in serverAddress;
 serverAddress.sin_family = AF_INET;
 serverAddress.sin_port = htons(port);
-serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
+serverAddress.sin_addr.s_addr = htonl(INADDR_ANY); // non specific IP address
 
 //bind the socket to the address
 if(bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
@@ -52,7 +63,7 @@ if(listen(serverSocket, 1) < 0){
 
 std::cout << "Server listening on port " << port << std::endl;
 
-int clientSocket = accept(serverSocket, nullptr, nullptr);
+int clientSocket = accept(serverSocket, nullptr, nullptr); //nullpointer is ok becuase the address is always localhost address
 if(clientSocket < 0){
     // handle accepting failure
     std::cout << "Error accepting connection" << std::endl;
@@ -85,6 +96,7 @@ if(connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)
     close(clientSocket);
     return -1;
 }
+cout << "Connected to server" << endl;
 
 return clientSocket;
 }

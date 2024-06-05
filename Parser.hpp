@@ -12,8 +12,8 @@ public:
         std::string iArgs;     // Option for 'i' flag
         std::string oArgs;     // Option for 'o' flag
         std::string tArgs;     // Option for 't' flag
-        int inSocketfd = -1;   // Socket file descriptor for input redirection
-        int outSocketfd = -1;  // Socket file descriptor for output redirection
+        int inSocketfd = STDIN_FILENO ;   // Socket file descriptor for input redirection
+        int outSocketfd = STDOUT_FILENO;  // Socket file descriptor for output redirection
 
 
     Parser(int argc, char *argv[]); // Constructor declaration
