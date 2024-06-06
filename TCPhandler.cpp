@@ -16,6 +16,7 @@ using namespace std;
 
 // this is a method to handle the TCP server
 int tcpServer(int port){
+    std::cout << "tcpServer method on the go" << std::endl;
 //init socket 
 int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 if(serverSocket < 0){
@@ -98,5 +99,87 @@ if(connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)
 }
 cout << "Connected to server" << endl;
 
+
 return clientSocket;
 }
+
+
+// //tcp client send mesages to server
+// void tcpConv(int clientSocket){
+//     char buffer[1024];
+//     int n;
+//     //fork a child process to reads and the parent process writes 
+//     if(fork() == 0){
+//         while(1){
+//             bzero(buffer, 1024);
+//             n = read(clientSocket, buffer, 1024);
+//             if(n < 0){
+//                 std::cout << "Server is down / Error reading from socket" << std::endl;
+//                 perror("read");
+//                 close(clientSocket);
+//                 exit(1);
+//             }
+//             std::cout << "Server: " << buffer << std::endl;
+//         }
+//     }else{
+//         while(1){
+//             bzero(buffer, 1024);
+//             fgets(buffer, 1024, stdin);
+//             n = write(clientSocket, buffer, strlen(buffer));
+//             if(n < 0){
+//                 std::cout << "Server is down / Error writing to socket" << std::endl;
+//                 perror("write");
+//                 close(clientSocket);
+//                 exit(1);
+//             }
+//         }
+//     }
+// }
+
+
+void tcpConv(int clientSocket){
+    char buffer[1024];
+    int n;
+    if(fork() == 0){ // Child process - Reads
+        while(1){
+            bzero(buffer, 1024);
+            n = read(clientSocket, buffer, 1024);
+            if(n <= 0){
+                cout << "Server is down or connection closed by server" << endl;
+                perror("read");
+                close(clientSocket);
+                exit(1);
+            }
+            if(strncmp(buffer, "exit", 4) == 0) {
+                //send exit message to server
+                std:string exit = "exit";
+                write(clientSocket, exit.c_str(), exit.length());
+                cout << "other side has ended the session." << endl;
+                close(clientSocket);
+                break; // Exit the loop
+            }
+            cout << buffer << endl;
+        }
+        exit(0); // Exit child process
+    }else{ // Parent process - Writes
+        while(1){
+            bzero(buffer, 1024);
+            fgets(buffer, 1024, stdin);
+            if(strncmp(buffer, "exit", 4) == 0) {
+                write(clientSocket, buffer, strlen(buffer));
+                cout << "Exiting session." << endl;
+                break; // Exit the loop
+            }
+            n = write(clientSocket, buffer, strlen(buffer));
+            if(n < 0){
+                cout << "Error writing to socket" << endl;
+                perror("write");
+                close(clientSocket);
+                exit(1);
+            }
+        }
+    }
+        close(clientSocket); // Close the socket properly
+}
+
+

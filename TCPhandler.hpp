@@ -9,5 +9,6 @@
 // Function prototypes for TCP server and client
 int tcpServer(int port);
 int tcpClient(int port);
+void tcpConv(int clientSocket);
 
 #endif // NETWORK_HANDLER_HPP

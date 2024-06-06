@@ -1,7 +1,13 @@
 #ifndef PARSER_HPP
-#define PHLAR
+#define PARSER_HPP
 #include <string>
 #include <vector>
+#include <iostream>
+#include <unistd.h>
+#include <sstream>
+#include <iterator>
+#include <cstring>
+#include <cstdlib>
 
 class Parser {
 public:
@@ -18,7 +24,10 @@ public:
 
     Parser(int argc, char *argv[]); // Constructor declaration
     void parseOptions(int argc, char *argv[]); // Method to parse command line options
-    void updateInputOutput(int &inputfd, int &output_index, int state);
+    void makeServerByFlag(int &outputfd,int port); // Method to make a server by flag
+    void makeClientByFlag(int &inputfd,int port); // Method to make a client by flag
+    int extractNumbers(const std::string& input); // Method to extract numbers from a string
+
 };
 
 #endif // PARSER_HPP

@@ -5,7 +5,8 @@
 #include <iostream>
 #include <string>
 #include <cstring>
-// #include <unistd.h>
+#include <unistd.h>
+
 
 
 #define SIZE 9
@@ -171,10 +172,11 @@ int main(int argc, char const *argv[]){
         std::cin >> playerMove;
         moveMade = makeMove(board, PLAYER, playerMove);
         while(!moveMade){
+            // if(strcmp(std::to_string(playerMove),"") != 0){               // check if the input is not empty
             std::cout << "invalid move, enter a valid move: ";
-            // sleep(1);
             std::cin >> playerMove;
             moveMade = makeMove(board, PLAYER, playerMove);
+            // }
         }
         //check if the game is over
         gameStatus = checkGameOver(board);
