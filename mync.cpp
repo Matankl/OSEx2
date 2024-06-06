@@ -46,35 +46,25 @@ void executeCommand(const char **args)
 }
 
 int main(int argc, char *argv[]){
-    Parser parser(argc, argv); // Initialize parser with command-line arguments
-
-    // if the timeout argument is not null then set the timeout
-    if (!parser.tArgs.empty())
-    {
-        // convert the timeout argument to an integer
-        int timeout = stoi(parser.tArgs);
-        // set the timeout
-        alarm(timeout);
+    Parser parser(argc, argv);              // Initialize parser with command-line arguments
+    if (!parser.tArgs.empty()){             // if the timeout argument is not null then set the timeout
+        int timeout = stoi(parser.tArgs);   // convert the timeout argument to an integer
+        alarm(timeout);                     // set the timeout
     }
 
-    cout << "DEBUG PRINT: DELETE LATER! this is the point before updating the input and the output in the main" << endl;
-    cout << "DEBUG PRINT: DELETE LATER! this is the state of input_fd before: " << input_fd << endl;
-    cout << "DEBUG PRINT: DELETE LATER! this is the state of output_fd before: " << output_fd << endl;
+    cout << "DEBUG PRINT: DELETE LATER! before updating the inputfd and the outputfd in the main: " << "input_fd: " << input_fd << " output_fd: " << output_fd << endl;
 
-
-    if (!parser.iArgs.empty()) parser.makeServerByFlag(input_fd, parser.extractNumbers(parser.iArgs));
-    if (!parser.oArgs.empty()) parser.makeClientByFlag(output_fd, parser.extractNumbers(parser.oArgs));
+    if (!parser.iArgs.empty()) parser.makeServerByFlag(input_fd, parser.extractNumbers(parser.iArgs));  //make the server (input) by flag
+    if (!parser.oArgs.empty()) parser.makeClientByFlag(output_fd, parser.extractNumbers(parser.oArgs)); //make the client by flag
 
         if (!parser.bArgs.empty()){
 
           //  parser.updateInputOutput(input_fd, output_fd, 0);
         }
-    cout << "DEBUG PRINT: DELETE LATER! this is the state of input_fd after: " << input_fd << endl;
-    cout << "DEBUG PRINT: DELETE LATER! this is the state of output_fd after: " << output_fd << endl;
-    cout << "DEBUG PRINT: DELETE LATER! this is the point before chaking if eArg is null" << endl;
-    cout << parser.eArgs[0] << endl;
-    cout << parser.eArgs[1] << endl;
-    if (parser.eArgs[0] != "" && parser.eArgs[1] != ""){
+
+    cout << "DEBUG PRINT: DELETE LATER! State after - input_fd: " << input_fd << ", output_fd: " << output_fd << endl;
+
+    if (parser.execArgs != NULL){
         cout << "DEBUG PRINT: DELETE LATER! this is the just inside the earg check" << endl;
         // redirect the input and output to the new file descriptors
         // if (input_fd != STDIN_FILENO)
@@ -96,8 +86,10 @@ int main(int argc, char *argv[]){
             }
         }
         cout << "DEBUG PRINT: DELETE LATER! this is the point befor the executeCommand" << endl;
-        executeCommand(parser.execArgs);
-    }else{              //make a chat between the server and the client
+        executeCommand(parser.execArgs);        //execute the execvp command
+    }
+    
+    else{              //make a chat between the server and the client
         cout << "DEBUG PRINT: DELETE LATER! this is the point inside the eArgs else scope" << endl;
         
         if(!parser.iArgs.empty()){
@@ -108,6 +100,9 @@ int main(int argc, char *argv[]){
             tcpConv(output_fd);
         }          
     }
+
+
+
     cout << "DEBUG PRINT: DELETE LATER! this is the point after the if eArgs not null scope" << endl;
     cleanup();
     return 0;

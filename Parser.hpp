@@ -13,7 +13,7 @@ class Parser {
 public:
 
         const char **execArgs; // exec name and arguments
-        std::string eArgs[2];  // Additional arguments
+        // std::string eArgs[2];  // Additional arguments
         std::string bArgs;     // Option for 'b' flag
         std::string iArgs;     // Option for 'i' flag
         std::string oArgs;     // Option for 'o' flag

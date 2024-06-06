@@ -165,6 +165,7 @@ void tcpConv(int clientSocket){
         while(1){
             bzero(buffer, 1024);
             fgets(buffer, 1024, stdin);
+           buffer[strcspn(buffer, "\n")] = '\0'; // Remove newline character
             if(strncmp(buffer, "exit", 4) == 0) {
                 write(clientSocket, buffer, strlen(buffer));
                 cout << "Exiting session." << endl;

@@ -61,17 +61,15 @@ void Parser::parseOptions(int argc, char *argv[]){
 }
 
 // this method updates the input and the output by the values of the flags
-void Parser::makeServerByFlag(int &inpout_fd, int port){
-    std::cout << "DEBUG PRINT: DELETE LATER! this is the port givan to the server: " << port << std::endl;
+void Parser::makeServerByFlag(int &input_fd, int port){
     std::string protocolPort = iArgs;
     int temp_fd = -1;
     if (protocolPort.compare(0, 4, "TCPS") == 0) {
-        std::cout << "DEBUG PRINT: DELETE LATER! this is inside the TCPS section" << std::endl;
         // open server socket 
         temp_fd = tcpServer(port); 
     }
 
-    inpout_fd = temp_fd;
+    input_fd = temp_fd;
 }
 
 /*
@@ -84,18 +82,9 @@ void Parser::makeClientByFlag(int &output_fd, int port){
     if (protocolPort.compare(0, 4, "TCPC") == 0) {
         output_fd = tcpClient(port);  // Assuming that the port starts right after "TCPC"
     }
-    //  if (output_fd != STDOUT_FILENO)
-    //     {
-    //         std::cout << "this is the out dup print" << std::endl; 
-    //         if (dup2(output_fd, STDOUT_FILENO) == -1)
-    //         {
-    //             perror("output dup2 failed");
-    //             // cleanup();
-    //         }
-    //     }
 
+    if(execArgs!= NULL){
     std::cout << "DEBUG PRINT: DELETE LATER! this is if eArg in PARSER" << std::endl;
-    if(eArgs != nullptr){
         tcpConv(output_fd);
     }
 }
