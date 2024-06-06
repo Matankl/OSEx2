@@ -17,8 +17,10 @@ using namespace std;
 // this is a method to handle the TCP server
 int tcpServer(int port){
     std::cout << "tcpServer method on the go" << std::endl;
-//init socket 
-int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+//init socket
+int serverSocket, clientSocket;
+struct sockaddr_in serverAddress, clientAddress; 
+serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 if(serverSocket < 0){
     // handle socket creation failure
     std::cout << "Error creating socket (server)" << std::endl;
@@ -37,13 +39,9 @@ if(setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
 }
 
 //fill in the server address
-// sockaddr_in: It is the data type that is used to store the address of the socket.
-// htons(): This function is used to convert the unsigned int from machine byte order to network byte order.
-// INADDR_ANY: It is used when we don’t want to bind our socket to any particular IP and instead make it listen to all the available IPs.
-sockaddr_in serverAddress;
 serverAddress.sin_family = AF_INET;
 serverAddress.sin_port = htons(port);
-serverAddress.sin_addr.s_addr = htonl(INADDR_ANY); // non specific IP address
+serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
 
 //bind the socket to the address
 if(bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
@@ -63,8 +61,8 @@ if(listen(serverSocket, 1) < 0){
 }
 
 std::cout << "Server listening on port " << port << std::endl;
-
-int clientSocket = accept(serverSocket, nullptr, nullptr); //nullpointer is ok becuase the address is always localhost address
+socklen_t client_addr_size = sizeof(clientAddress);
+clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &client_addr_size ); //nullpointer is ok becuase the address is always localhost address
 if(clientSocket < 0){
     // handle accepting failure
     std::cout << "Error accepting connection" << std::endl;
@@ -80,62 +78,83 @@ return clientSocket;
 
 // this is a method to handle the TCP client
 int tcpClient(int port){
-//init socket
-int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+// //init socket
+// int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-//fill in the server address
-sockaddr_in serverAddress;
-serverAddress.sin_family = AF_INET;
-serverAddress.sin_port = htons(port);
-serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
+// //fill in the server address
+// sockaddr_in serverAddress;
+// serverAddress.sin_family = AF_INET;
+// serverAddress.sin_port = htons(port);
+// serverAddress.sin_addr.s_addr = INADDR_ANY; // non specific IP address
 
-//connect to the server
-if(connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
-    // handle connection failure
-    std::cout << "Error connecting to server" << std::endl;
-    perror("connect");
-    close(clientSocket);
-    return -1;
-}
-cout << "Connected to server" << endl;
-
-
-return clientSocket;
-}
-
-
-// //tcp client send mesages to server
-// void tcpConv(int clientSocket){
-//     char buffer[1024];
-//     int n;
-//     //fork a child process to reads and the parent process writes 
-//     if(fork() == 0){
-//         while(1){
-//             bzero(buffer, 1024);
-//             n = read(clientSocket, buffer, 1024);
-//             if(n < 0){
-//                 std::cout << "Server is down / Error reading from socket" << std::endl;
-//                 perror("read");
-//                 close(clientSocket);
-//                 exit(1);
-//             }
-//             std::cout << "Server: " << buffer << std::endl;
-//         }
-//     }else{
-//         while(1){
-//             bzero(buffer, 1024);
-//             fgets(buffer, 1024, stdin);
-//             n = write(clientSocket, buffer, strlen(buffer));
-//             if(n < 0){
-//                 std::cout << "Server is down / Error writing to socket" << std::endl;
-//                 perror("write");
-//                 close(clientSocket);
-//                 exit(1);
-//             }
-//         }
-//     }
+// //connect to the server
+// if(connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
+//     // handle connection failure
+//     std::cout << "Error connecting to server" << std::endl;
+//     perror("connect");
+//     close(clientSocket);
+//     return -1;
 // }
+// cout << "Connected to server" << endl;
 
+
+// return clientSocket;
+
+    int client_sock;
+    struct sockaddr_in server_addr;
+    char buffer[1024];
+
+    client_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (client_sock < 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (connect(client_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("connect failed");
+        exit(EXIT_FAILURE);
+    }
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid == 0) { // Child process: read from server
+        while (1) {
+            ssize_t bytes_read = read(client_sock, buffer, 1024 - 1);
+            if (bytes_read <= 0) {
+                break; // Exit loop on read error or server disconnect
+            }
+            buffer[bytes_read] = '\0';
+            printf("Received from server: %s\n", buffer);
+        }
+        close(client_sock);
+        exit(0);
+    } else { // Parent process: write to server
+        while (1) {
+            printf("Enter message (-1 to quit): ");
+            fgets(buffer, sizeof(buffer), stdin);
+            buffer[strcspn(buffer, "\n")] = '\0'; // Remove newline character
+
+            if (strcmp(buffer, "-1") == 0) {
+                break; // Exit loop if user enters -1
+            }
+
+            write(client_sock, buffer, strlen(buffer));
+        }
+        close(client_sock);
+      
+
+        kill(pid, SIGKILL); // Kill child process reading from server
+    }
+    return 0;
+}
 
 void tcpConv(int clientSocket){
     char buffer[1024];
